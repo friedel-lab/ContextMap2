@@ -37,9 +37,9 @@ Thomas Bonfert, Gergely Csaba, Ralf Zimmer, Caroline C. Friedel. 2013, PloS one.
 - Usage: java -jar ContextMap_v2.*.jar <tool name> <tool arguments> [tool options]*
 
 Available tools:
-         1. 'mapper' - The ContextMap mapping tool
-         2. 'indexer' - Prepares large sets of genomes for being indexed with the desired unspliced Aligner (Bowtie1, Bowtie2 or BWA).
-         3. 'inspector' - Determines read counts, confidence values, genome coverages and the square root of the Jensen-Shannon divergence for species contained in a sam file
+1. 'mapper' - The ContextMap mapping tool
+2. 'indexer' - Prepares large sets of genomes for being indexed with the desired unspliced Aligner (Bowtie1, Bowtie2 or BWA).
+3. 'inspector' - Determines read counts, confidence values, genome coverages and the square root of the Jensen-Shannon divergence for species contained in a sam file
 
 Start a tool without any argument to get a specific help message and a list of available options for this tool
 
@@ -48,7 +48,7 @@ Start a tool without any argument to get a specific help message and a list of a
 
 
 - Usage of the mapper tool: 
-java -jar ContextMap_v2.*.jar mapper <arguments> [options]*
+    java -jar ContextMap_v2.*.jar mapper <arguments> [options]*
 
 Required arguments:
 
@@ -89,7 +89,8 @@ Options:
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-- Usage of the indexer tool: java -jar ContextMap_v2.*.jar indexer <arguments> [options]*
+- Usage of the indexer tool: 
+    java -jar ContextMap_v2.*.jar indexer <arguments> [options]*
 
 Required arguments:
 
@@ -106,7 +107,8 @@ Options:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-- Usage of the inspector tool: java -jar ContextMap_v2.*.jar inspector <arguments> [options]*
+- Usage of the inspector tool: 
+    java -jar ContextMap_v2.*.jar inspector <arguments> [options]*
 
 Required arguments:
 
