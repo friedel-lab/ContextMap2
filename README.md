@@ -48,6 +48,7 @@ Start a tool without any argument to get a specific help message and a list of a
 
 
 - Usage of the mapper tool: 
+
     java -jar ContextMap_v2.*.jar mapper <arguments> [options]*
 
 Required arguments:
@@ -90,6 +91,7 @@ Options:
 
 
 - Usage of the indexer tool: 
+
     java -jar ContextMap_v2.*.jar indexer <arguments> [options]*
 
 Required arguments:
@@ -108,6 +110,7 @@ Options:
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 - Usage of the inspector tool: 
+
     java -jar ContextMap_v2.*.jar inspector <arguments> [options]*
 
 Required arguments:
