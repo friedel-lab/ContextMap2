@@ -22,11 +22,11 @@ Thomas Bonfert, Gergely Csaba, Ralf Zimmer, Caroline C. Friedel. 2013, PloS one.
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-- PLEASE READ THE MANUAL (available from our website or in the ContextMap package) to get an overview of ContextMap and to learn more about its usage.
+- PLEASE READ THE MANUAL (available in the ContextMap package, 'manual' directory) to get an overview of ContextMap and to learn more about its usage.
 
 - EXAMPLE DATA AND SHELL SCRIPTS TO DEMONSTRATE THE USAGE OF CONTEXTMAP are included in the ContextMap package ('example_call' and 'mining_example' directories).
 
-- For questions or bug reports please mail to: bonfert@bio.ifi.lmu.de
+- For questions or bug reports please mail to: friedel@bio.ifi.lmu.de
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

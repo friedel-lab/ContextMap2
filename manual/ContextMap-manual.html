@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CONTEXTMAP</title>
+    <link rel="stylesheet" type="text/css" media="screen,print" href="ContextMap_files/ContextMap.css" />
+    <script type="text/javascript" src="ContextMap_files/ContextMap.js"></script>
+  </head>
+  <body>
+    <h1>Context-based mapping of RNA-seq data with <br/> ContextMap 2.0</h1>
+    <h2>Table of contents</h2>
+    <h3><a href="#introduction">1. Introduction</a></h3>
+    <h3><a href="#obtaining_contextmap">2. Obtaining ContextMap</a></h3>
+      <h4><a href="#building_from_source">2.1. Building ContextMap from source</a></h4>
+    <h3><a href="#getting_started">3. Getting Started</a></h3>
+      <h4><a href="#preparing_reference">3.1. Preparing the reference sequences</a></h4>
+      <h4><a href="#preparing_index">3.2. Building the index for the chosen unspliced aligner</a></h4>
+      <h4><a href="#preparing_reads">3.3. Preparing the read data</a></h4>
+    <h3><a href="#running_contextmap">4. Running ContextMap</a></h3>
+      <h4><a href="#main_arguments">4.1. Main arguments</a></h4>
+      <h4><a href="#options">4.2. Options</a></h4>
+      <h4><a href="#output">4.3. Output</a></h4>
+    <h3><a href="#performance_tuning">5. Performance Tuning</a></h3>
+    <h3><a href="#example_call">6. Example call</a></h3>
+    <h3><a href="#mining">7. Mining RNA-seq data for infections and contaminations</a></h3>
+      <h4><a href="#mining_1">7.1. Indexing large amounts of reference genomes</a></h4>
+      <h4><a href="#mining_2">7.2. Generating mappings against an arbitrary set of species</a></h4>
+      <h4><a href="#mining_3">7.3. Obtaining confidences, genome coverages and the Jensen-Shannon divergence</a></h4>
+      <h4><a href="#mining_4">7.4. Example</a></h4>
+    <h3><a href="#references">8. References</a></h3>
+    </br>
+    <h2><a name="introduction">1. Introduction</a></h2>
+      <p>ContextMap is a very accurate read mapping tool for data from RNA-seq experiments. It can be used to refine mapping provided by other tools or as a standalone program.</p>
+      <p>Reads are mapped in a context-sensitive way, which means that ContextMap considers all reads aligned close to a particular read to determine its unique mapping location. A detailed description of the algorithm is given in the original publication <a href="#ref_contextmap">[1]</a>.</p>
+    </br>
+    <h2><a name="obtaining_contextmap">2. Obtaining ContextMap</a></h2>
+      <p>ContextMap is implemented in Java and can be used with unmodified versions of the following unspliced aligners:</p> 
+	<ul>
+	  <li>Bowtie <a onclick="window.open(this.href); return false;" href="http://bowtie-bio.sourceforge.net/index.shtml" onkeypress="window.open(this.href); return false;">project website</a> <a href="#ref_bowtie">[2]</a></li>
+	  <li>Bowtie 2 <a onclick="window.open(this.href); return false;" href="http://bowtie-bio.sourceforge.net/bowtie2/index.shtml" onkeypress="window.open(this.href); return false;">project website</a> <a href="#ref_bowtie2">[6]</a></li>
+	  <li>BWA <a onclick="window.open(this.href); return false;" href="http://bio-bwa.sourceforge.net/" onkeypress="window.open(this.href); return false;">project website</a> <a href="#ref_bwa">[7]</a></li>
+	</ul>
+	<p>The ContextMap source code and pre-compiled binaries for Unix and MacOS X can be downloaded from the project <a onclick="window.open(this.href); return false;" href="http://www.bio.ifi.lmu.de/ContextMap" onkeypress="window.open(this.href); return false;">website</a>.</p>
+	<h3><a name="building_from_source">2.1. Building ContextMap from source</a></h3>
+	  <p>The core implementation of ContextMap is realized with Java and provided as a single jar file. For running the Java code you need an installed version of Java 1.6 or later on your machine. Since Java is platform independent, it is not required to re-build the code for any operating system.</p>
+	  <p>For compiling the desired unspliced aligner, see the above mentioned project websites.</p>
+	</br>
+    <h2><a name="getting_started">3. Getting Started</a></h2>
+      <p>Here we give a detailed description of how to prepare your data for using ContextMap.</p>
+	<h3><a name="preparing_reference">3.1. Preparing the reference sequences</a></h3>
+	  <p>ContextMap needs as input reference sequences against which the mapping will be performed. Each reference must be provided as one fasta file and all those files must be located in a single folder. For example, for mapping against the human genome you will need a folder containing the following files: chr1.fa, chr2.fa, ..., chr22.fa, chrX.fa, chrY.fa and chrMT.fa.</p>
+	<h3><a name="preparing_index">3.2. Building the index for the chosen unspliced aligner</a></h3>
+	  <p>ContextMap can use different unspliced aligners to align reads against a given reference. For this purpose, ContextMap uses the index for the chosen aligner. Building the index is described for each tool on the correspendonding project websites (see <a name="obtaining_contextmap">2. Obtaining ContextMap</a>).</p>
+	  <p>The indices of all the chosable aligners store the fasta header information for every reference sequence, which is used in the mapping output to identify the reference to which a particular read has been aligned. ContextMap needs the underlying reference sequences in the input (see <a href="#preparing_reference">3.1. Preparing the reference sequences</a>) and connects each reference name from the aligner output to a reference file. Therefore, it is important that the file name of each reference is identical to its associated fasta header. For instance, if the reference file is named chr1.fa then the fasta header of this file should be &quot;&gt;chr1&quot;.</p>
+	<h3><a name="preparing_reads">3.3. Preparing the read data</a></h3>
+	  <p>ContextMap reads the raw read data either from a single fasta or fastq file. If your data is separated into two or more files, you have to concatenate them. It is also possible to apply ContextMap on paired-end data (--pairedend option). Here, it is important that the ids of mates from the same fragment have the following format: &quot;base_name/1&quot; and &quot;base_name/2&quot;, whereas the &quot;base_name&quot; has to be exactly the same id for both mates. This already holds for Illumina sequence identifiers of version 1.4 or lower (for example: @HWUSI-EAS100R:6:73:941:1973#0/1). Illumina sequence identifiers of version 1.8 or higher (for example: @EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG) are also supported by ContextMap and do not need further modifications. <br> Again, the reads must be provided in a single file, independent of any ordering.</p>
+    </br>
+    <h2><a name="running_contextmap">4. Running ContextMap</a></h2>
+      <p>The core implementation of ContextMap is realized in Java. Thus, you need an installed version of Java 1.6 or later on your machine for running it. All the available unspliced aligners which ContextMap can make use of can be downloaded as precompiled binaries or as source code on the corresponding project websites.</p>
+      <p>For ContextMap itself, we also provide the complete source code for <a onclick="window.open(this.href); return false;" title="http://www.bio.ifi.lmu.de/ContextMap" href="http://www.bio.ifi.lmu.de/ContextMap" onkeypress="window.open(this.href); return false;">downloading</a>. ContextMap is a command line only tool and can be used as follows:</p>
+      <p>java -jar ContextMap_v2.1.0.jar mapper &lt;main arguments&gt; [options]*</p>
+	<h3><a name="main_arguments">4.1. Main arguments</a></h3>
+	  <p>All of the following main arguments must be set:</p>
+	    <table>
+	      <tr>
+		<td>-reads</td>
+		<td>A comma separated list of file paths to reads in fasta/fastq/zip/gz format. A single path for single-end mapping and two paths (#1 mates and #2 mates) for paired-end mapping</td>
+	      </tr>
+	      <tr>
+		<td>-aligner_name</td>
+		<td>The following alignment tools are supported: "bwa", "bowtie1" or "bowtie2".
+	      </tr>
+	      <tr>
+		<td>-aligner_bin</td>
+		<td>The absolute path to the executable of the chosen aligner tool.</td>
+	      </tr>
+	      <tr>
+		<td>-indexer_bin</td>
+		<td>The absolute path to the executable of the aligner's indexing tool (not needed for BWA).</td>
+	      </tr>
+	      <tr>
+		<td>-indices</td>
+		<td>A comma separated list of paths to basenames of indices, which can be used by the chosen aligner.</td>
+	      </tr>
+	      <tr>
+		<td>-genome</td>
+		<td>The path to a folder with reference sequences in fasta format (for each chromosome a separate file). It is important that the chromosome names contained in the index of the chosen unspliced alignment program (see <a href="obtaining_contextmap">2. Obtaining ContextMap</a>) are equal to the filenames of the files contained in the genome folder (for instance if the index contains a chromosome called "chr1", the genome folder must contain a file called "chr1.fa").</td>
+	      </tr>
+	      <tr>
+		<td>-o</td>
+		<td>The path to the output directory.</td>
+	      </tr>
+	    </table>
+	<h3><a name="#options">4.2. Options</a></h3>
+	    <table>
+	      <tr>
+		<td>--mining</td>
+		<td>Allows to mine for infections or contaminations. In default mode ContextMap outputs for an ambiguously aligned read in addition to its best, its second best mapping location with respect to assigned context scores. By setting this option, ContextMap will print the next best hit located on any other chromosome or genome, if available. Otherwise the second best hit located on the same chromosome/genome will be printed. This behaviour is needed for calculating confidence values and mismatch distribution of identified species. Information about the exact mapping location of the second best hit is provided via four additional SAM fields in the output (see <a href="#output">4.3. Output</a>).</td>
+	      </tr>
+	      <tr>
+		<td>-skipsplit</td>
+		<td>A comma separated list of booleans, each element refers to a given aligner index (same ordering). 'true' for no split detection, 'false' otherwise. Set the value to 'true' for indices based on concatenated genome sequences to prevent ContextMap from identifying spurious junction reads across different genomes (req. in mining mode).</td>
+	      </tr>
+	      <tr>
+		<td>-speciesindex</td>
+		<td>The path to a directory containing index files created with the 'indexer' tool. Needed by ContextMap to distinguish between different genomes of concatenated sequences (req. in mining mode).</td>
+	      </tr>
+	      <tr>
+		<td>-aligner_tmp</td>
+		<td> The path to a folder for temporary alignment files. If not set, ContextMap uses a subfolder of the output directory for these files. For large data sets the alignment step may generate very large alignment files (up to 100GB or more).</td>
+	      </tr>
+	      <tr>
+		<td>-seed</td>
+		<td>The seed length for the alignment (default: Bwt1: 30, BWA/Bwt2: 20).</td>
+	      </tr>
+	      <tr>
+		<td>-seedmismatches</td>
+		<td>Allowed mismatches in the seed region (default: Bwt1: 1, BWA/Bwt2: 0).</td>
+	      </tr>
+	      <tr>
+		<td>-mismatches</td>
+		<td>Allowed mismatches in the whole read (default: 4).</td>
+	      </tr>
+	      <tr>
+		<td>-mmdiff</td>
+		<td>The maximum allowed mismatch difference between the best and second best alignment of the same read (default: 0).</td>
+	      </tr>
+	      <tr>
+		<td>-maxhits</td>
+		<td>The maximum number of candidate alignments per read. Reads with more hits are skipped (bwa/bwt1) or the already found hits are reported (bwt2) (default for bwa/bwt1:10, bwt2: 3).</td>
+	      </tr>
+	      <tr>
+		<td>-minsize</td>
+		<td>The minimum number of reads, which a genomic region has to contain for being regarded as a local context (default: 10).</td>
+	      </tr>
+	      <tr>
+		<td>-annotation</td>
+		<td>The path to an annotation file in our own format (provided with the ContextMap package).</td>
+	      </tr>
+	      <tr>
+		<td>-gtf</td>
+		<td>The path to an annotation file in GTF format. This option is mutually exclusive with the -annotation option.</td>
+	      </tr>
+	      <tr>
+		<td>-t</td>
+		<td>The number of threads used for the run (default: 1).</td>
+	      </tr>
+	      <tr>
+		<td>--noclipping</td>
+		<td>Disables the calculation of clipped alignments (default: not set).</td>
+	      </tr>
+	      <tr>
+		<td>--noncanonicaljunctions</td>
+		<td>Enables the prediction of non-canonical splice sites (default: not set).</td>
+	      <tr>
+	      <tr>
+		<td>--strandspecific</td>
+		<td>Enables strand specific mapping (default: not set).</td>
+	      </tr>
+		<tr>
+		<td>--polyA</td>
+		<td>Enables the search for polyA-tails. This option is mutually exclusive with the --noclipping option. (default: off)</td>
+	      </tr>
+		<tr>
+		<td>--sequenceDB</td>
+		<td>Writes a readId -> sequence mapping to disk. Recommended for very large data sets. (default: off)</td>
+	      </tr>
+		<td>--printmultimappings</td>
+		<td>Forces ContextMap to print out all possible multi-mappings to an additional file (default: not set).</td>
+	      </tr>
+	      <tr>
+		<td>--verbose</td>
+		<td>The verbose mode, which generates a more detailed output in every step (default: not set).</td>
+	      </tr>
+	      <tr>
+		<td>--keeptmp</td>
+		<td>ContextMap does not delete most of the temporary files (default: not set).</td>
+	      </tr>
+	    </table>
+	<h3><a name="output">4.3. Output</a></h3>
+	  <p>The final mapping will be printed in the SAM format, which contains the following fields:</p>
+	    <ol>
+	      <li><p>The read name</p></li>
+	      <li><p>The sum of the bitwise flag. Currently, ContextMap uses three relevant flag:</p>
+		<ol>
+		  <li><p>The read has been aligned to the reverse reference strand (Bit 5, 2^5=16).</p></li>
+		  <p>The following two flags are set only in paired-end modus:</p>
+		  <li><p>The read is the first segment in the template (Bit 7, 2^7=128).</p></li>
+		  <li><p>The read is the last segment in the template (Bit 8, 2^8=256).</p></li>
+		</ol>
+	      </li>
+	      <li><p>The reference sequence name of the alignment (e.g.: chr1 for an alignment to chromosome 1).</p></li>
+	      <li><p>The position of the alignment on the reference sequence (1-based).</p></li>
+	      <li><p>The mapping quality, which is always set to 255 (unavailable).</p></li>
+	      <li><p>The CIGAR string of the alignment. We only use the &quot;M&quot; (alignment match) and &quot;N&quot; (skipped region from the reference) symbols to represent the alignment.</p></li>
+	      <p>Fields 7-11 are not set, which is represented either by a &quot;0&quot; or a &quot;*&quot;. For reads with several possible mapping positions, the SAM file contains four additional columns:</p></li>
+	      <li value="12"><p>The reference sequence name of the second best alignment.</p></li>
+	      <li><p>The position of the second best alignment on the reference sequence.</p></li>
+	      <li><p>The score of the best alignment.</p></li>
+	      <li><p>The score of the second best alignment.</p></li>
+	    </ol>
+    </br>
+    <h2><a name="performance_tuning">5. Performance Tuning</a></h2>
+      <p>The largest performance gain can be obtained when ContextMap is run as a multi-threaded application (-t option). Considering threading efficiency we obtained best results using 6-12 threads, depending on the used machine and the available cores.</p>
+      <p>We recommend to use the &quot;-Xms&quot; and &quot;-Xmx&quot; option to set the minimum and maximum heap size of the java virtual machine, respectively. For mappings to genomes like human you have to reserve at least 4 GB of RAM and add for each thread another GB. For instance, if you are working with 8 threads, we suggest to set: -Xms4000M -Xmx12000m. For large data sets (&gt; 80 Mio reads) the maximum heap size may be set to 20-30GB.</p>
+      <p>When running ContextMap in multi-threaded mode together with a large heap we experienced best results when using the concurrent garbage collector together with a relatively small heap size for the young generation:</p>
+      <p>-XX:+UseConcMarkSweepGC -XX:NewSize=300M -XX:MaxNewSize=300M</p>
+      <p>A detailed description of how to set the parameters of the Java Virtual Machine can be found <a onclick="window.open(this.href); return false;" title="http://www.oracle.com/technetwork/java/gc-tuning-5-138395.html" href="http://www.oracle.com/technetwork/java/gc-tuning-5-138395.html" onkeypress="window.open(this.href); return false;">here</a> and in the script of the example call.</p>
+      <p>If ContextMap still performs too slow, needs too much memory or hard disk space, we suggest to do the following:</p>
+	<ol>
+	  <li><p>Increase the seed size (-seed).</p></li>
+	  <li><p>Reduce the number of allowed mismatches in the seed (-seedmismatches).</p></li>
+	  <li><p>Reduce the number of allowed mismatches for the whole read (-mismatches).</p></li>
+	  <li><p>Reduce the maximum allowed mismatch difference between the best and second best alignment (-mmdiff).
+	  <!--Widerspruch zu default:0 ?? --></p></li>
+	  <li><p>Set the maximum number of allowed hits per read to a lower value (e.g.: 1000) (-maxhits).</p></li>
+	</ol>
+      <p>Note, that all these changes may decrease the sensitivity of ContextMap.</p>
+    </br>
+    <h2><a name="example_call">6. Example call</a></h2>
+      <p>For demonstrating the usage of ContextMap, we simulated human reads with the Flux Simulator <a href="#ref_fluxsimulator">[3]</a> and extracted read sequences of a particular Ensembl gene on chromosome 1 (ENSG00000198746). As a reference sequence, we use a part of chromosome 1, which covers the mentioned gene. This sequence is used to build an index for the desired unspliced aligner. All this data is contained in the ContextMap archive, including a shell script to show how ContextMap can be called. If you execute this shell script, you have to enter name of the desired unspliced aligner and the path to the binary and the indexer (if not BWA).<br>
+      To start ContextMap, it is sufficient to execute the script. In order to apply ContextMap on your own data, you simply can modify the given script.</p>
+    </br>
+    <h2><a name="mining">7. Mining RNA-seq data for infections an contaminations</a></h2>
+      <p>In the following it is described how ContextMap can be used to mine for infections and contaminations in RNA-Seq data. The methods implemented for this task are introduced in our recently published paper <a href="#ref_contextmap_2">[4]</a>.</p>
+	<h3><name="mining_1">7.1. Indexing large amounts of reference genomes.</a></h3>
+	  <p>When searching for unknown infections or contaminations in RNA-seq data, thousands of different microbial and viral genomes have to be considered as potential candidates. However, the original Bowtie implementation was limited to index only a relatively small amount of different fasta sequences (<= 10000) and also ContextMap works best when the reference sequence directory does not contain thousands of different fasta files. Therefore, the first step is to concatenate microbial and viral genomes. This can be easily done with the 'indexer' tool provided with the ContextMap package.<br>
+	  <b>Note, the split detection for reads aligned to concatenated sequences is not supported and has to be disabled by the user with the -skipsplit option </b> (see the following section).</p>
+	  <p>The indexer tool concatenates the entries of a given multi-fasta file and inserts a sequence of N's between two entries to omit read alignments overlapping subsequent entries. The output is a set of fasta files, each containing at most a pre-defined maximum number of bases (default: 250.000.000). Furthermore, '*.idx' files will be created, which allow to reconstruct the original sequences of the input. Every '*.idx' file is associated to one of the created fasta files and can later be used by other tools contained in the ContextMap package. The 'indexer' can be used as follows:<br> 
+	  java -jar ContextMap_2.2.1.jar indexer &lt;main arguments&gt; [options]* <br> 
+	  Main arguments: </p>
+	    <table>
+	      <tr>
+		<td>-fasta</td>
+		<td>The path to a multi fasta file, which should be indexed.</td>
+	      </tr>
+	      <tr>
+		<td>-prefix</td>
+		<td>The basename of the index (e.g. 'microbes').</td>
+	      </tr>
+	      <tr>
+		<td>-o</td>
+		<td>The path to the output directory.</td>
+	      </tr>
+	    </table>
+	  <p>Options:</p>
+	    <table>
+	      <tr>
+		<td>-gapsize</td>
+		<td>The number of N's inserted between two subsequent entries of the input (default: 100).</td>
+	      </tr>
+	      <tr>
+		<td>-indexsize</td>
+		<td>The maximum number of bases a index file contains (default: 250000000).</td>
+	      </tr>
+	    </table>
+	<h3><a name="mining_2">7.2. Generating mappings against an arbitrary set of species</a></h3>
+	  <p>Once all candidate sequences for infections and contaminations have been indexed with the 'indexer' tool, one has to build an index with the indexer tool of the desired unspliced aligner for the set of generated fasta files. Subsequently, it is necessary that all fasta files (including the chromosome files of a reference species like human), against which a mapping will be determined, are located in the same directory.<br>
+	  Now you can start ContextMap like it is described in the <a href="#running_contextmap">Running ContextMap</a> section. The directory containing the fasta sequences can be provided with the -genome option and an arbitrary set of indices can be provided with the -indices option via a comma separated list of paths to the basenames of the indices.
+	  <b>ContextMap has three options, which have to be set when mining for infections or contaminations:</b> </p>
+	    <table>
+	      <tr>
+		<td>--mining</td>
+		<td>Allows to mine for infections or contaminations. In default mode ContextMap outputs for an ambiguously aligned read in addition to its best, its second best mapping location with respect to assigned context scores. By setting this option, ContextMap will print the next best hit located on any other chromosome or genome, if available. Otherwise the second best hit located on the same chromosome/genome will be printed. Information about the exact mapping location of the second best hit is provided via four additional SAM fields in the output (see <a href="#output">4.3. Output</a>).</td>
+	      </tr>
+	      <tr>
+		<td>-skipsplit</td>
+		<td>A comma separated list of booleans, each element refers to a given index of the unspliced aligner (same ordering). 'true' for no split detection, 'false' otherwise. Set the value to 'true' for indices based on concatenated genome sequences to prevent ContextMap from identifying spurious junction reads across different genomes.</td>
+	      </tr>
+	      <tr>
+		<td>-speciesindex</td>
+		<td>The path to a directory containing index files created with the 'indexer' tool. Needed by ContextMap to distinguish between different genomes of concatenated sequences.</td>
+	      </tr>
+	    </table>
+	<h3><a name="mining_3">7.3. Obtaining confidences, genome coverages and the Jensen-Shannon divergence</a></h3>
+	  <p>For determining the set of species contained in a given sam file together with statistics (introduced in <a href="#ref_contextmap_2">[4]</a>) necessary for an accurate classification, the ContextMap packages contains the 'inspector' tool, which can be used as follows: <br> 
+	  java -jar ContextMap_2.2.1.jar inspector &lt;main arguments&gt; [options]* <br> 
+	  Main arguments:</p>
+	    <table>
+	      <tr>
+		<td>-sam</td>
+		<td>The path to a mapping file in sam format.</td>
+	      </tr>
+	      <tr>
+		<td>-idx</td>
+		<td>The path to a directory containing index files, which were generated with the 'indexer' tool.</td>
+	      </tr>
+	    </table>
+	  <p>Options:</p>
+	    <table>
+	      <tr>
+		<td>-reference</td>
+		<td>A comma seprerated list of chromosome names or a single species identifier, which will be used as a reference for the Jensen-Shannon divergence calculation. if not set, the most abundant species in the sample will be used.</td>
+	      </tr>
+	      <tr>
+		<td>-refseqcatalog</td>
+		<td>The path to a RefSeq *.catalog file. Trivial species names will be extracted in case they are not available in the index files.</td>
+	      </tr>
+	      <tr>
+		<td>--mergecontigs</td>
+		<td>Mappings to different contigs of the same species will be merged.</td>
+	      </tr>
+	      <tr>
+		<td>--mdflag</td>
+		<td>Uses the MD field of the sam file to evaluate mismatch counts. Per default, the NM field is used.</td>
+	      </tr>
+	    </table>
+	 <p>The output of the inspector tool is a table which contains read counts, genome coverages, confidence values as well as the square root of the Jensen-Shannon divergence for every identified species.</p>
+      <h3><a name="mining_4">7.4. Example</a></h3>
+	<p>The ContextMap package contains the directory 'mining_example', which itself contains data for demonstrating the mining process from the very beginning. The underlying read data is a subset of an in-vitro simulated microbial community <a href="#ref_microbial_community">[5]</a> and the reference sequences are genomes of species being part of this community. By executing the 'run_example.sh' script, the following steps will be performed: <br>
+	  <ol>
+	    <li>Indexing the reference genomes
+	      <p>The reference sequences are located in two different files (genomes_0.fa and genomes_1.fa), which could represent in a real life scenario all microbial and all viral genomes, respectively. Indexing the sequences is done via the indexer tool with the following commands: <br>
+	      <i>java -jar ../bin/ContextMap_v2.3.0.jar indexer -fasta genomes_0.fa -prefix microbesA -o indexed_references</i> <br>
+	      <i>java -jar ../bin/ContextMap_v2.3.0.jar indexer -fasta genomes_1.fa -prefix microbesB -o indexed_references</i> <br>
+	      The output is written to the 'indexed_references' directory (-o option) and the base names of the newly generated fasta and index files are defined via the -prefix option.</p>
+	   </li>
+	   <li>Building indices for the unspliced aligner
+	      <p>The next step is to build indices for the concatenated reference genomes. This is done with the indexer program of the desired unspliced aligner via the following command: <br>
+	      <i>$indexer_bin -f indexed_references/fasta/microbesA_0.fa aligner_index/demo_index_A</i> <br>
+	      <i>$indexer_bin -f indexed_references/fasta/microbesB_0.fa aligner_index/demo_index_B</i> <br>
+	      We store the indices in the directory 'aligner_index' and name the indices 'demo_index_A' and 'demo_index_B', respectively.</p>
+	   </li>
+	   <li>Running ContextMap
+	      <p>Now, we are ready to execute ContextMap via the following command: <br>
+	      <i>java -jar ../bin/ContextMap_v2.3.0.jar mapper --mining -aligner_name $aligner_name -aligner_bin $aligner_bin  -indexer_bin $indexer_bin -reads reads.fa -o mapping -indices aligner_index/demo_index_A,aligner_index/demo_index_B -genome indexed_references/fasta -skipsplit true,true -speciesindex indexed_references/indices</i> <br>
+	      The <i>--mining</i> enables a ContextMap-Mining run. The <i>-indices</i> option changed to previous ContextMap versions by accepting now not only one but a list of indices. Here the two indices 'demo_index_A' and 'demo_index_B' are provided, respectively. Furthermore, a mining run requires to use the <i>-skipsplit</i> option, which expects a list of booleans with which the user is able to tell ContextMap for which of the provided indices the split read detection can be disabled. Each element of this list refers to an element of the list provided with the <i>-indices</i> (the first boolean refers to the first index and so on). Since we are working in this example with two indices based on concatenated genomes, we skip the split detection for both of them. Finally, the <i>-speciesindex</i> option points to the directory where all *.idx files (created with the indexer tool) are located. All other options are used like it is described in the '<a href="#running_contextmap">Running ContextMap</a>' sections.</p>
+	   </li>
+	   <li>Obtaining confidences, genome coverages and the Jensen-Shannon divergence
+	      <p>The set of species contained in the input together with statistics (introduced and described in detail in <a href="#ref_contextmap_2">[4]</a>) necessary for an accurate classification can be determined with the 'inspector' tool of the ContextMap package:
+	      <br>
+	      <i>java -jar ../bin/ContextMap_v2.3.0.jar inspector -sam mapping/mapping.sam -idx indexed_references/indices</i> <br>
+	      With the -sam option the mapping file created in the ContextMap run is provided and the -idx option expects the path to the directory, where all *.idx files are located. The final output is a table, which contains for every identified species read counts, the genome coverage, confidence values and the square root of the Jensen-Shannon divergence.</p>
+	   </li>
+	 </ol>
+    <h2><a name="references">8. References</a></h2>
+      <p><a name="ref_contextmap">[1]</a> Thomas Bonfert, Gergely Csaba, Ralf Zimmer, Caroline C. Friedel.<br>
+      A context-based approach to identify the most likely mapping for RNA-Seq experiments.<br>
+      BMC Bioinformatics, vol13(Suppl 6), pp. S9, 2012</p>
+      <p><a name="ref_bowtie">[2]</a> B. Langmead, C. Trapnell, M. Pop, and S. L. Salzberg.<br>
+      Ultrafast and memory-efficient alignment of short DNA sequences to the human genome.<br>
+      Genome Biol, 10(3):R25, 2009</p>
+      <p><a name="ref_fluxsimulator">[3]</a> The Flux Project (2011). Flux simulator version 1.0-RC4<br>
+      <a onclick="window.open(this.href); return false;" title="http://sammeth.net/confluence/display/SIM/home" href="http://sammeth.net/confluence/display/SIM/home" onkeypress="window.open(this.href); return false;">Flux simulator website</a><br>
+      <p><a name=ref_contextmap_2>[4]</a> Thomas Bonfert, Gergely Csaba, Ralf Zimmer, Caroline C. Friedel.<br>
+      Mining RNA-seq Data for Infections and Contaminations.<br>
+      PloS one, vol 8, pp. e73071, 2013</p>
+      <p><a name="ref_microbial_community">[5]</a> Morgan JL, Darling AE, Eisen JA.<br>
+      Metagenomic sequencing of an in vitro-simulated microbial community.<br>
+      PLoS One, 5: e10209, 2010</p>
+      <p><a name="ref_bowtie2">[6]</a> B. Langmead, S. Salzberg.<br>
+      Fast gapped-read alignment with Bowtie 2.<br>
+      Nature Methods, 9:357-359, 2012</p>
+      <p><a name="ref_bwa">[7]</a> H. Li, R. Durbin.<br>
+      Fast and accurate short read alignment with Burrows-Wheeler transform.<br>
+      Bioinformatics, 25, 1754-1760, 2009</p>
+  </body>
+</html> 
+
+
