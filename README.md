@@ -47,42 +47,43 @@ Start a tool without any argument to get a specific help message and a list of a
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-- Usage of the mapper tool: java -jar ContextMap_v2.*.jar mapper <arguments> [options]*
+- Usage of the mapper tool: 
+java -jar ContextMap_v2.*.jar mapper <arguments> [options]*
 
 Required arguments:
 
--reads          <A comma separated list of file paths to reads in fasta/fastq/zip/gz format. A single path for single-end mapping and two paths (#1 mates and #2 mates) for paired-end mapping>
--aligner_name   <The following alignment tools are supported: "bwa", "bowtie1" or "bowtie2">
--aligner_bin    <The absolute path to the executable of the chosen aligner tool>
--indexer_bin    <The absolute path to the executable of the aligner's indexing tool (not needed for BWA)>
--indices        <A comma separated list of paths to basenames of indices, which can be used by the chosen aligner>
--genome         <The path to a directory with genome sequences in fasta format (for each chromosome a separate file)>
--o              <The path to the output directory>
+    -reads          <A comma separated list of file paths to reads in fasta/fastq/zip/gz format. A single path for single-end mapping and two paths (#1 mates and #2 mates) for paired-end mapping>
+    -aligner_name   <The following alignment tools are supported: "bwa", "bowtie1" or "bowtie2">
+    -aligner_bin    <The absolute path to the executable of the chosen aligner tool>
+    -indexer_bin    <The absolute path to the executable of the aligner's indexing tool (not needed for BWA)>
+    -indices        <A comma separated list of paths to basenames of indices, which can be used by the chosen aligner>
+    -genome         <The path to a directory with genome sequences in fasta format (for each chromosome a separate file)>
+    -o              <The path to the output directory>
 
 Options:
 
---mining                <Set this to mine for infections or contaminations. Changes of ContextMap's mapping behaviour due to this option are described in the manual.>
--skipsplit              <A comma separated list of booleans, each element refers to a given aligner index (same ordering). 'true' for no split detection, 'false' otherwise (REQ. in mining mode).>
--speciesindex           <The path to a directory containing index files created with the 'indexer' tool (REQ. in mining mode)>
--aligner_tmp            <The path to a directory for temporary alignment files>
--seed                   <The seed length for the alignment> (default: Bwt1: 30, BWA/Bwt2: 20)
--seedmismatches         <Allowed mismatches in the seed region> (default: Bwt1: 1, BWA/Bwt2: 0)
--mismatches             <Allowed mismatches in the whole read> (default: 4)
--mmdiff                 <The maximum allowed mismatch difference between the best and second best alignment of the same read> (default: 0)
--maxhits                <The maximum number of candidate alignments per read. Reads with more hits are skipped (bwa/bwt1) or the already found hits are reported (bwt2) > (default for bwa/bwt1:10, bwt2: 3)
--minsize                <The minimum number of reads a genomic region has to contain for being regarded as a local context. (default:10)
--annotation             <The path to an annotation file in our own format>
--gtf                    <The path to an annotation file in gtf format. This option is mutually exclusive with the -annotation option>
--t                      <The number of threads used for the run> (default: 1)
---noclipping		<Disables the calculation of clipped alignments> (default: not set)";
--updateinterval         <The number of performed queue updates during global context resolution (default: 3)>
---updatequeue           <Enables queue updates for the local and global context resolution step> (default: not set)
---noncanonicaljunctions <Enables the prediction of non-canonical splice sites> (default: not set)
---strandspecific        <Enables strand specific mapping (default: not set)>
---polyA			<Enables the search for polyA-tails and writes found cleavage sites to a bed file. (default: off)>
---sequenceDB		<Writes a readId -> sequence mapping to disk. Recommended for very large data sets. (default: off)>
---verbose               <verbose mode> (default: not set)
---keeptmp               <does not delete some temporary files> (default: not set)
+    --mining                <Set this to mine for infections or contaminations. Changes of ContextMap's mapping behaviour due to this option are described in the manual.>
+    -skipsplit              <A comma separated list of booleans, each element refers to a given aligner index (same ordering). 'true' for no split detection, 'false' otherwise (REQ. in mining mode).>
+    -speciesindex           <The path to a directory containing index files created with the 'indexer' tool (REQ. in mining mode)>
+    -aligner_tmp            <The path to a directory for temporary alignment files>
+    -seed                   <The seed length for the alignment> (default: Bwt1: 30, BWA/Bwt2: 20)
+    -seedmismatches         <Allowed mismatches in the seed region> (default: Bwt1: 1, BWA/Bwt2: 0)
+    -mismatches             <Allowed mismatches in the whole read> (default: 4)
+    -mmdiff                 <The maximum allowed mismatch difference between the best and second best alignment of the same read> (default: 0)
+    -maxhits                <The maximum number of candidate alignments per read. Reads with more hits are skipped (bwa/bwt1) or the already found hits are reported (bwt2) > (default for bwa/bwt1:10, bwt2: 3)
+    -minsize                <The minimum number of reads a genomic region has to contain for being regarded as a local context. (default:10)
+    -annotation             <The path to an annotation file in our own format>
+    -gtf                    <The path to an annotation file in gtf format. This option is mutually exclusive with the -annotation option>
+    -t                      <The number of threads used for the run> (default: 1)
+    --noclipping		<Disables the calculation of clipped alignments> (default: not set)";
+    -updateinterval         <The number of performed queue updates during global context resolution (default: 3)>
+    --updatequeue           <Enables queue updates for the local and global context resolution step> (default: not set)
+    --noncanonicaljunctions <Enables the prediction of non-canonical splice sites> (default: not set)
+    --strandspecific        <Enables strand specific mapping (default: not set)>
+    --polyA			<Enables the search for polyA-tails and writes found cleavage sites to a bed file. (default: off)>
+    --sequenceDB		<Writes a readId -> sequence mapping to disk. Recommended for very large data sets. (default: off)>
+    --verbose               <verbose mode> (default: not set)
+    --keeptmp               <does not delete some temporary files> (default: not set)
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -92,15 +93,15 @@ Options:
 
 Required arguments:
 
--fasta		<The path to a multi fasta file, which should be indexed>
--prefix		<The basename of the index (e.g. 'microbes')>
--o		<The path to the output directory>
+    -fasta		<The path to a multi fasta file, which should be indexed>
+    -prefix		<The basename of the index (e.g. 'microbes')>
+    -o		<The path to the output directory>
 
 
 Options:
 
--gapsize	<Defines the number of N's inserted between two subsequent entries of the input. See the help for an explanation <default: 100>
--indexsize	<The maximum number of bases a index file contains. <default: 250000000>
+    -gapsize	<Defines the number of N's inserted between two subsequent entries of the input. See the help for an explanation <default: 100>
+    -indexsize	<The maximum number of bases a index file contains. <default: 250000000>
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,16 +110,16 @@ Options:
 
 Required arguments:
 
--sam		<The path to a mapping file in sam format>
--idx		<The path to a directory containing index files, which were generated with the 'indexer' tool>
+    -sam		<The path to a mapping file in sam format>
+    -idx		<The path to a directory containing index files, which were generated with the 'indexer' tool>
 
 
 Options:
 
--reference	<A comma seperated list of chr names or a single species id, which will be used as reference for JS divergence calculations. If not set, the most abundant species will be used.
--refseqcatalog	<The path to a RefSeq *.catalog file. Trivial species names will be extracted in case they are not available in the index files.>
---mergecontigs	<Mappings to different contigs of the same species will be merged>
---mdflag	<Uses the MD field of the sam file to evaluate mismatch counts. Per default, the NM field is used.>
+    -reference	<A comma seperated list of chr names or a single species id, which will be used as reference for JS divergence calculations. If not set, the most abundant species will be used.
+    -refseqcatalog	<The path to a RefSeq *.catalog file. Trivial species names will be extracted in case they are not available in the index files.>
+    --mergecontigs	<Mappings to different contigs of the same species will be merged>
+    --mdflag	<Uses the MD field of the sam file to evaluate mismatch counts. Per default, the NM field is used.>
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
